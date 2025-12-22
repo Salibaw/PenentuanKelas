@@ -47,7 +47,9 @@ Route::middleware(['auth:web'])->group(function () {
     Route::post('/alternatif/edit', [AlternatifController::class, 'edit'])->name('alternatif.edit');
     Route::put('/alternatif/{id}/update', [AlternatifController::class, 'update'])->name('alternatif.update');
     Route::delete('/alternatif/{id}/delete', [AlternatifController::class, 'delete'])->name('alternatif.delete');
-
+    Route::get('/alternatif/template', [AlternatifController::class, 'downloadTemplate'])->name('alternatif.template');
+    Route::post('/alternatif/import', [AlternatifController::class, 'import'])->name('alternatif.import');
+    
     // Wali Kelas Routes
     Route::get('/walikelas', [WaliKelasController::class, 'index'])->name('walikelas.index');
     Route::post('/walikelas/store', [WaliKelasController::class, 'store'])->name('walikelas.store');
@@ -73,7 +75,7 @@ Route::middleware(['auth:web'])->group(function () {
     // Route untuk memproses tombol "Hitung SMART"
     Route::post('/perangkingan/hitung', [PerhitunganController::class, 'hitung'])->name('perangkingan.hitung');
     Route::get('/perangkingan/cetak', [PerhitunganController::class, 'cetak'])->name('perangkingan.cetak');
-    
+
     // Profile Routes
     Route::get('/profile', [AuthController::class, 'edit'])->name('profile.edit');
     Route::put('/profile/update', [AuthController::class, 'update'])->name('profile.update');

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Alternatif; // Asumsi nama model Anda Alternatif
 use Illuminate\Http\Request;
+use App\Imports\AlternatifImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AlternatifController extends Controller
 {
@@ -41,5 +43,30 @@ class AlternatifController extends Controller
     {
         Alternatif::destroy($id);
         return redirect()->back()->with('success', 'Siswa berhasil dihapus.');
+    }
+
+
+    public function downloadTemplate()
+    {
+        // Membuat file Excel sederhana untuk contoh format
+        $header = [['nama_lengkap', 'nisn', 'jenis_kelamin']];
+        return Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromCollection {
+            protected $data;
+            public function __construct($data)
+            {
+                $this->data = $data;
+            }
+            public function collection()
+            {
+                return collect($this->data);
+            }
+        }, 'template_siswa.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate(['file' => 'required|mimes:xlsx']);
+        Excel::import(new AlternatifImport, $request->file('file'));
+        return redirect()->back()->with('success', 'Data siswa berhasil diimport!');
     }
 }
