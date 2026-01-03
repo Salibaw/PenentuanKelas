@@ -73,4 +73,25 @@ class AuthController extends Controller
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
     }
+    public function forgotPassword()
+    {
+        return view('auth.forgot-password'); // Sesuaikan dengan nama file blade Anda
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.exists' => 'Email tidak terdaftar di sistem kami.'
+        ]);
+
+        // Logika: 
+        // 1. Buat Token unik
+        // 2. Simpan ke tabel password_resets
+        // 3. Kirim email ke user (memerlukan setup Mail)
+
+        // Contoh simulasi pesan sukses
+        return redirect()->back()->with('status', 'Kami telah mengirimkan link reset password ke email Anda!');
+    }
 }

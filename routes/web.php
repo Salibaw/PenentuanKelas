@@ -36,6 +36,8 @@ Route::post('/logout', function () {
     return redirect('/');
 })->name('logout');
 
+Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
 Route::post('/proseslogin', [AuthController::class, 'proseslogin'])->name('proseslogin');
 
 Route::middleware(['auth:web'])->group(function () {

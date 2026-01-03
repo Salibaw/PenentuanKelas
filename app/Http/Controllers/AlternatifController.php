@@ -9,9 +9,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class AlternatifController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswa = Alternatif::orderBy('nama_lengkap', 'asc')->get();
+        // Mengambil kata kunci dari input 'search'
+        $search = $request->query('search');
+
+        $siswa = Alternatif::orderBy('nama_lengkap', 'asc')
+            ->when($search, function ($query, $search) {
+                return $query->where('nama_lengkap', 'like', '%' . $search . '%')
+                    ->orWhere('nomor_pendaftaran', 'like', '%' . $search . '%');
+            })
+            ->paginate(10)
+            ->withQueryString(); // Menjaga parameter search tetap ada saat pindah halaman
+
         return view('alternatif.index', compact('siswa'));
     }
 
@@ -49,7 +59,7 @@ class AlternatifController extends Controller
     public function downloadTemplate()
     {
         // Membuat file Excel sederhana untuk contoh format
-        $header = [['nama_lengkap', 'nisn', 'jenis_kelamin']];
+        $header = [['nama_lengkap', 'nomor_pendaftaran']];
         return Excel::download(new class($header) implements \Maatwebsite\Excel\Concerns\FromCollection {
             protected $data;
             public function __construct($data)

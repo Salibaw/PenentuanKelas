@@ -11,8 +11,7 @@ class AlternatifImport implements ToModel, WithHeadingRow
     {
         return new Alternatif([
             'nama_lengkap' => $row['nama_lengkap'],
-            'nisn'         => $row['nisn'] ?? null,
-            'jenis_kelamin'=> $row['jenis_kelamin'] ?? null,
+            'nomor_pendaftaran'         => $row['nomor_pendaftaran'] ?? null,
         ]);
     }
 }
