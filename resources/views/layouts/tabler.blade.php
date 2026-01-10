@@ -37,7 +37,7 @@
                 </button>
 
                 <h1 class="navbar-brand navbar-brand-autodark mt-2">
-                    <a href="{{ url('/dashboard') }}" class="d-flex align-items-center text-decoration-none">
+                    <a href="{{ url('/') }}" class="d-flex align-items-center text-decoration-none">
                         <img src="{{ asset('assets/img/logo2.png') }}"
                             alt="Logo SMPN 2 Sumenep"
                             style="height: 35px; width: auto;"

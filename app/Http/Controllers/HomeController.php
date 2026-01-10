@@ -17,7 +17,8 @@ class HomeController extends Controller
                 });
             })
             ->orderBy('ranking', 'asc')
-            ->get();
+            ->paginate(15) // Ganti get() menjadi paginate(15)
+            ->withQueryString(); // Agar parameter ?q= tetap ada saat klik page 2
 
         return view('penentuankelas', compact('hasil'));
     }
