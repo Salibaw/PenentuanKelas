@@ -38,8 +38,19 @@ Route::post('/logout', function () {
 
 Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
 Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 Route::post('/proseslogin', [AuthController::class, 'proseslogin'])->name('proseslogin');
-
+Route::get('/test-email', function () {
+    try {
+        \Illuminate\Support\Facades\Mail::raw('Halo, ini tes email dari Laravel!', function ($message) {
+            $message->to('ahmadcholili81@gmail.com')->subject('Tes Koneksi SMTP');
+        });
+        return "Email terkirim! Cek inbox kamu.";
+    } catch (\Exception $e) {
+        return "Gagal: " . $e->getMessage();
+    }
+});
 Route::middleware(['auth:web'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -51,7 +62,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::delete('/alternatif/{id}/delete', [AlternatifController::class, 'delete'])->name('alternatif.delete');
     Route::get('/alternatif/template', [AlternatifController::class, 'downloadTemplate'])->name('alternatif.template');
     Route::post('/alternatif/import', [AlternatifController::class, 'import'])->name('alternatif.import');
-    
+
     // Wali Kelas Routes
     Route::get('/walikelas', [WaliKelasController::class, 'index'])->name('walikelas.index');
     Route::post('/walikelas/store', [WaliKelasController::class, 'store'])->name('walikelas.store');

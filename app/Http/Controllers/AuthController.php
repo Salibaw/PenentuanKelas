@@ -6,6 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Auth\Events\PasswordReset;
+
 use App\Models\User;
 
 class AuthController extends Controller
@@ -54,28 +58,35 @@ class AuthController extends Controller
 
     public function update(Request $request)
     {
-        $user = \App\Models\User::find(Auth::id());
+        $user = Auth::user();
+
+        // Jika user tidak ditemukan di session, jangan paksa akses array
+        if (!$user) {
+            return redirect()->route('login')->with('warning', 'Sesi Anda telah berakhir.');
+        }
 
         $request->validate([
             'name' => 'required|string|max:255',
+            // Gunakan $user->id (object syntax) bukan $user['id'] (array syntax)
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|min:6|confirmed',
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
+        // Simpan password lama jika input password kosong
+        $newPassword = $request->filled('password') ? Hash::make($request->password) : $user->password;
 
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-
-        $user->save();
+        $user->update([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $newPassword,
+        ]);
 
         return redirect()->back()->with('success', 'Profil berhasil diperbarui!');
     }
+
     public function forgotPassword()
     {
-        return view('auth.forgot-password'); // Sesuaikan dengan nama file blade Anda
+        return view('auth.forgot-password');
     }
 
     public function sendResetLink(Request $request)
@@ -86,12 +97,43 @@ class AuthController extends Controller
             'email.exists' => 'Email tidak terdaftar di sistem kami.'
         ]);
 
-        // Logika: 
-        // 1. Buat Token unik
-        // 2. Simpan ke tabel password_resets
-        // 3. Kirim email ke user (memerlukan setup Mail)
+        $status = Password::sendResetLink($request->only('email'));
 
-        // Contoh simulasi pesan sukses
-        return redirect()->back()->with('status', 'Kami telah mengirimkan link reset password ke email Anda!');
+        return $status === Password::RESET_LINK_SENT
+            ? redirect()->back()->with('status', 'Kami telah mengirimkan link reset password ke email Anda!')
+            : redirect()->back()->withErrors(['email' => 'Gagal mengirim email reset password.']);
+    }
+
+    public function showResetForm(Request $request, $token)
+    {
+        return view('auth.reset-password', [
+            'token' => $token,
+            'email' => $request->email
+        ]);
+    }
+
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|min:6|confirmed',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+                $user->save();
+                event(new PasswordReset($user));
+            }
+        );
+
+        return $status === Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('success', 'Password berhasil diubah!')
+            : redirect()->back()->withErrors(['email' => [__($status)]]);
     }
 }
