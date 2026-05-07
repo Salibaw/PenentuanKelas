@@ -182,7 +182,25 @@
             <ul class="nav-menu">
                 <li><a href="/">Beranda</a></li>
                 <li><a href="{{ route('cek.kelas') }}">Penentuan Kelas</a></li>
-                <li><a href="{{ 'login' }}">Login</a></li>
+
+                @guest
+                {{-- Tampilan jika BELUM login --}}
+                <li><a href="{{ route('login') }}">Login</a></li>
+                @endguest
+
+                @auth
+                {{-- Tampilan jika SUDAH login --}}
+                <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                <li>
+                    <a href="{{ route('logout') }}"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        Logout
+                    </a>
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                        @csrf
+                    </form>
+                </li>
+                @endauth
             </ul>
         </div>
     </nav>

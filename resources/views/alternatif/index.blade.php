@@ -152,9 +152,75 @@
         </div>
     </div>
 </div>
+{{-- Modal Tambah Siswa --}}
+<div class="modal modal-blur fade" id="modal-inputsiswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Data Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('alternatif.store') }}" method="POST">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nomor Pendaftaran</label>
+                        <input type="text" class="form-control" name="nomor_pendaftaran" placeholder="Contoh: 2024001" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Nama Lengkap</label>
+                        <input type="text" class="form-control" name="nama_lengkap" placeholder="Masukkan nama siswa" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-{{-- Modal-modal tetap sama seperti sebelumnya --}}
-<!-- Modal Import, Tambah Manual, Edit tetap dipertahankan (tidak berubah) -->
+{{-- Modal Edit Siswa --}}
+<div class="modal modal-blur fade" id="modal-editsiswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Data Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="load-edit-form">
+                {{-- Form akan dimuat di sini via AJAX --}}
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- Modal Import Siswa --}}
+<div class="modal modal-blur fade" id="modal-import-siswa" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Data Siswa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('alternatif.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Pilih File Excel (.xlsx, .xls)</label>
+                        <input type="file" name="file_excel" class="form-control" required>
+                        <small class="text-muted">Gunakan template yang telah disediakan untuk menghindari error.</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary me-auto" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info">Proses Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 @endsection
 

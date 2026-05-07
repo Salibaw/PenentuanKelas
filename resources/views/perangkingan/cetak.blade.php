@@ -49,7 +49,7 @@
                 <th width="40">NO</th>
                 <th>NAMA LENGKAP</th>
                 <th width="100">KELAS</th>
-                <th width="120">RANKING</th>
+                <th width="120">TTD</th>
             </tr>
         </thead>
         <tbody>
@@ -58,7 +58,7 @@
                 <td style="text-align: center;">{{ $index + 1 }}</td>
                 <td>{{ $row->alternatif->nama_lengkap }}</td>
                 <td style="text-align: center;">{{ $row->kelas }}</td>
-                <td style="text-align: center;">{{ $row->ranking }}</td>
+                <td style="text-align: center;"></td>
             </tr>
             @endforeach
         </tbody>
