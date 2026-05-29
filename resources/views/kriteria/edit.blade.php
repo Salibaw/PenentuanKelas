@@ -1,5 +1,6 @@
 <form action="{{ route('kriteria.update', $kriteria->id) }}" method="POST">
-    @csrf @method('PUT')
+    @csrf 
+    @method('PUT')
     <div class="mb-3">
         <label class="form-label">Nama Kriteria</label>
         <input type="text" name="nama_kriteria" class="form-control" value="{{ $kriteria->nama_kriteria }}" required>
@@ -24,5 +25,8 @@
             <option value="pilihan" {{ $kriteria->tipe_input == 'pilihan' ? 'selected' : '' }}>Pilihan (Y/N)</option>
         </select>
     </div>
-    <button type="submit" class="btn btn-primary w-100">Update Kriteria</button>
+    <div class="modal-footer p-0 pt-3 border-top-0">
+        <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="submit" class="btn btn-info ms-auto shadow-sm">Update Kriteria</button>
+    </div>
 </form>

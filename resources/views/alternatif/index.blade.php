@@ -43,32 +43,6 @@
 
 <div class="page-body">
     <div class="container-xl">
-        {{-- Komplemen Blok Notifikasi / Alert --}}
-        @if(session('success'))
-        <div class="alert alert-success alert-dismissible shadow-sm border-0 mb-3" role="alert">
-            <div class="d-flex">
-                <div>{{ session('success') }}</div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
-
-        @if($errors->any())
-        <div class="alert alert-danger alert-dismissible shadow-sm border-0 mb-3" role="alert">
-            <div class="d-flex">
-                <div>
-                    <strong class="d-block mb-1">Penyimpanan Gagal:</strong>
-                    <ul class="mb-0 ps-3">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        @endif
-
         {{-- Form Pencarian --}}
         <div class="card mb-3 border-0 shadow-sm">
             <div class="card-body">

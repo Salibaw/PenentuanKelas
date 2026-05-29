@@ -13,34 +13,7 @@
 
 <div class="page-body">
     <div class="container-xl">
-        {{-- Alert Sukses --}}
-        @if(session('success'))
-            <div class="alert alert-important alert-success alert-dismissible shadow-sm border-0 mb-3" role="alert">
-                <div class="d-flex">
-                    <div>{{ session('success') }}</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        {{-- Alert Gagal / Eror Validasi Duplikat Data --}}
-        @if($errors->any())
-            <div class="alert alert-danger alert-dismissible shadow-sm border-0 mb-3" role="alert">
-                <div class="d-flex">
-                    <div>
-                        <strong class="d-block mb-1">Penyimpanan Gagal:</strong>
-                        <ul class="mb-0 ps-3">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        <div class="card border-0 shadow-sm">
+            <div class="card border-0 shadow-sm">
             <div class="card-header bg-white py-3">
                 <button class="btn btn-primary shadow-sm" id="btnTambahWali">
                     <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

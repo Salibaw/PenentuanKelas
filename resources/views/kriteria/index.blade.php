@@ -43,7 +43,7 @@
                     <tbody>
                         @foreach($kriteria as $k)
                         <tr>
-                            <td class="fw-bold">{{ $k->nama_kriteria }}</td>
+                            <td class="fw-bold text-dark">{{ $k->nama_kriteria }}</td>
                             <td><span class="badge bg-blue-lt">{{ $k->bobot }}%</span></td>
                             <td>
                                 <span class="badge bg-{{ $k->tipe_input == 'angka' ? 'purple' : 'orange' }}-lt">
@@ -58,7 +58,7 @@
                             <td>
                                 <div class="btn-list flex-nowrap">
                                     <button class="btn btn-info btn-sm edit" id="{{ $k->id }}">Edit</button>
-                                    <form action="{{ route('kriteria.delete', $k->id) }}" method="POST" onsubmit="return confirm('Hapus kriteria ini?')">
+                                    <form action="{{ route('kriteria.delete', $k->id) }}" method="POST" onsubmit="return confirm('Hapus kriteria ini?')" class="d-inline">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
                                     </form>
@@ -73,6 +73,7 @@
     </div>
 </div>
 
+{{-- Modal Input --}}
 <div class="modal modal-blur fade" id="modal-inputkriteria" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content shadow-lg border-0">
@@ -90,7 +91,7 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Bobot (%)</label>
-                            <input type="number" name="bobot" class="form-control" required>
+                            <input type="number" name="bobot" class="form-control" placeholder="Maks sisa: {{ 100 - $totalBobot }}%" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Jenis</label>
@@ -109,6 +110,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-link link-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary ms-auto">Simpan Kriteria</button>
                 </div>
             </form>
@@ -116,7 +118,7 @@
     </div>
 </div>
 
-{{-- Modal untuk menampung isi dari file edit.blade.php --}}
+{{-- Modal Edit --}}
 <div class="modal modal-blur fade" id="modal-editkriteria" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content shadow-lg border-0">
@@ -124,26 +126,25 @@
                 <h5 class="modal-title">Edit Data Kriteria</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body" id="load-edit-form">
-                {{-- Form dari file edit.blade.php akan muncul di sini --}}
-            </div>
+            <div class="modal-body" id="load-edit-form"></div>
         </div>
     </div>
 </div>
-
 @endsection
 
 @push('myscript')
 <script>
     $(document).ready(function() {
-        $("#btnTambahKriteria").click(function() {
+        $("#btnTambahKriteria").click(function(e) {
+            e.preventDefault();
             $("#modal-inputkriteria").modal("show");
         });
 
         $(document).on('click', '.edit', function() {
             var id = $(this).attr('id');
             $("#modal-editkriteria").modal("show");
-            $("#load-edit-form").html('<div class="spinner-border text-primary"></div>');
+            $("#load-edit-form").html('<div class="text-center py-4"><div class="spinner-border text-primary"></div><div class="mt-2 text-muted">Memuat form...</div></div>');
+
             $.ajax({
                 type: 'POST',
                 url: '{{ route("kriteria.edit") }}',
@@ -153,6 +154,9 @@
                 },
                 success: function(respond) {
                     $("#load-edit-form").html(respond);
+                },
+                error: function() {
+                    $("#load-edit-form").html('<div class="alert alert-danger m-2">Gagal memuat form kriteria.</div>');
                 }
             });
         });

@@ -25,10 +25,67 @@
         .card-status-top {
             height: 4px;
         }
+
+        /* TATA LETAK TOAST: Mengunci posisi melayang di pojok kanan atas */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1060;
+        }
     </style>
 </head>
 
 <body>
+    {{-- WADAH NOTIFIKASI MELAYANG (TOAST CONTAINER) --}}
+    <div class="toast-container">
+        {{-- Mengambil Flash Message Success dari Session Laravel --}}
+        @if(session('success'))
+        <div id="toastSuccess" class="toast align-items-center text-white bg-success border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
+                    <div>{{ session('success') }}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        @endif
+
+        {{-- Mengambil Flash Message Error Manual dari Session Laravel --}}
+        @if(session('error'))
+        <div id="toastError" class="toast align-items-center text-white bg-danger border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 8l0 4" /><path d="M12 16l.01 0" /></svg>
+                    <div>{{ session('error') }}</div>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        @endif
+
+        {{-- Mengambil Massal Error Validasi Laravel ($errors->any()) --}}
+        @if($errors->any())
+        <div id="toastValidationError" class="toast align-items-center text-white bg-danger border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <div class="d-flex align-items-center gap-2 mb-1 fw-bold">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                        Penyimpanan Gagal:
+                    </div>
+                    <ul class="mb-0 ps-3 style-none" style="list-style-type: square;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 mt-2" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+        @endif
+    </div>
+
     <div class="page">
         <aside class="navbar navbar-vertical navbar-expand-lg navbar-light shadow-sm">
             <div class="container-fluid">
@@ -191,14 +248,51 @@
                 </div>
             </header>
 
+            <header class="navbar navbar-expand-md navbar-light d-lg-none d-print-none">
+                <div class="container-xl">
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar-menu">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-nav flex-row order-md-last">
+                        {{-- Mobile profile header if needed --}}
+                    </div>
+                </div>
+            </header>
+
             <main class="page-content">
                 @yield('content')
             </main>
         </div>
     </div>
+    
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta17/dist/js/tabler.min.js"></script>
+
+    {{-- SCRIPT JAVASCRIPT: Otomatis Menampilkan dan Menutup Toast --}}
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // 1. Inisialisasi Toast Sukses (Hilang otomatis dalam 4 detik)
+            const elSuccess = document.getElementById('toastSuccess');
+            if (elSuccess) {
+                const toastS = new bootstrap.Toast(elSuccess);
+                toastS.show();
+            }
+
+            // 2. Inisialisasi Toast Error Manual (Hilang otomatis dalam 5 detik)
+            const elError = document.getElementById('toastError');
+            if (elError) {
+                const toastE = new bootstrap.Toast(elError);
+                toastE.show();
+            }
+
+            // 3. Inisialisasi Toast Validasi Gagal (Kunci: Tidak menutup otomatis agar admin bisa membaca lis eror)
+            const elValid = document.getElementById('toastValidationError');
+            if (elValid) {
+                const toastV = new bootstrap.Toast(elValid);
+                toastV.show();
+            }
+        });
+    </script>
 
     @stack('myscript')
 </body>
