@@ -12,27 +12,47 @@ use Illuminate\Support\Facades\DB;
 
 class PerhitunganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Mengambil hasil SPK yang sudah diranking, beserta data siswa dan wali kelasnya
-        $hasil = HasilSpk::with(['alternatif', 'walikelas'])
-            ->orderBy('ranking', 'asc')
-            ->get();
+        // 1. Ambil input kata kunci pencarian nama
+        $searchNama = $request->query('search_nama');
 
-        return view('perangkingan.index', compact('hasil'));
+        // 2. Query hasil SPK dengan Eager Loading
+        $hasilQuery = HasilSpk::with(['alternatif', 'walikelas'])->orderBy('ranking', 'asc');
+
+        // 3. Filter berdasarkan nama siswa jika input pencarian diisi
+        if (!empty($searchNama)) {
+            $hasilQuery->whereHas('alternatif', function ($q) use ($searchNama) {
+                $q->where('nama_lengkap', 'like', '%' . $searchNama . '%');
+            });
+        }
+
+        $hasil = $hasilQuery->get();
+
+        return view('perangkingan.index', compact('hasil', 'searchNama'));
     }
 
     public function hitung()
     {
         $kriteria = Kriteria::all();
         $siswa = Alternatif::with('penilaian')->get();
-        $walikelas = WaliKelas::all();
 
-        if ($siswa->isEmpty() || $kriteria->isEmpty()) {
-            return redirect()->back()->with('error', 'Data siswa atau kriteria masih kosong!');
+        // Ambil data wali kelas (diurutkan berdasarkan kelas binaannya agar konsisten)
+        $walikelas = WaliKelas::orderBy('kelas', 'asc')->get();
+
+        if ($siswa->isEmpty()) {
+            return redirect()->back()->with('error', 'Gagal: Data pendaftaran siswa (alternatif) masih kosong!');
+        }
+        if ($kriteria->isEmpty()) {
+            return redirect()->back()->with('error', 'Gagal: Data kriteria penilaian masih kosong!');
         }
 
-        // 1. Normalisasi Bobot (Total harus 1)
+        $totalWali = $walikelas->count();
+        if ($totalWali <= 0) {
+            return redirect()->back()->with('error', 'Gagal: Data Wali Kelas di database masih kosong! Harap daftarkan wali kelas terlebih dahulu di menu Wali Kelas.');
+        }
+
+        // 1. Normalisasi Bobot Kriteria (Total harus 1)
         $totalBobot = $kriteria->sum('bobot');
         $bobotNormal = [];
         foreach ($kriteria as $k) {
@@ -45,7 +65,7 @@ class PerhitunganController extends Controller
             $scores = Penilaian::where('kriteria_id', $k->id)->pluck('nilai')->toArray();
 
             if (empty($scores)) {
-                $minMax[$k->id] = ['min' => 0, 'max' => 100]; // Fallback jika data kosong
+                $minMax[$k->id] = ['min' => 0, 'max' => 100];
             } else {
                 $minMax[$k->id] = [
                     'min' => min($scores),
@@ -64,7 +84,7 @@ class PerhitunganController extends Controller
 
                 // 3. Hitung Nilai Utilitas (u)
                 if ($cMax == $cMin) {
-                    $u = 1; // Jika semua nilai sama, utilitas dianggap maksimal
+                    $u = 1;
                 } else {
                     if ($k->jenis == 'benefit') {
                         $u = ($nilaiMentah - $cMin) / ($cMax - $cMin);
@@ -86,22 +106,32 @@ class PerhitunganController extends Controller
         // 5. Sorting berdasarkan skor tertinggi (Ranking)
         usort($hasilAkhir, fn($a, $b) => $b['total_skor'] <=> $a['total_skor']);
 
+        // Menghitung pembagian rata kuota kelas secara dinamis
+        $totalSiswa = count($hasilAkhir);
+        $siswaPerKelas = ceil($totalSiswa / $totalWali);
+
         // 6. Simpan ke Database & Pembagian Kelas Otomatis
         DB::beginTransaction();
         try {
-            HasilSpk::truncate(); // Bersihkan hasil lama
+            // PERBAIKAN UTAMA: Menggunakan delete() murni, bukan truncate() agar tidak merusak Transaction
+            HasilSpk::query()->delete();
 
             foreach ($hasilAkhir as $index => $h) {
                 $rank = $index + 1;
 
-                // Tentukan nomor urut kelas (setiap 31 siswa ganti kelas)
-                $nomorUrutKelas = ceil($rank / 31);
+                // Tentukan nomor urut kelas secara dinamis berdasarkan kapasitas hitung
+                $nomorUrutKelas = ceil($rank / $siswaPerKelas);
 
-                // Format Nama Kelas: 7-1, 7-2, 7-3, dst.
+                // Antisipasi jika pembulatan indeks terakhir melebihi jumlah wali kelas
+                if ($nomorUrutKelas > $totalWali) {
+                    $nomorUrutKelas = $totalWali;
+                }
+
                 $namaKelas = '7-' . $nomorUrutKelas;
 
-                // Ambil ID wali kelas berdasarkan urutan (index array mulai dari 0)
-                $waliId = $walikelas[$nomorUrutKelas - 1]->id ?? null;
+                // Cari wali kelas yang memegang kelas ini
+                $wali = $walikelas->firstWhere('kelas', $namaKelas);
+                $waliId = $wali ? $wali->id : ($walikelas[$nomorUrutKelas - 1]->id ?? null);
 
                 HasilSpk::create([
                     'alternatif_id' => $h['alternatif_id'],
@@ -113,17 +143,18 @@ class PerhitunganController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('perangkingan.index')->with('success', 'Perhitungan SMART Selesai! Kelas 7-1, 7-2, dst telah terbentuk.');
-        } catch (\Exception $e) {
+            return redirect()->route('perangkingan.index')->with('success', 'Perhitungan SMART Selesai! Pembagian kelas ' . $siswaPerKelas . ' siswa/kelas berhasil dibentuk.');
+        } catch (\Throwable $e) {
             DB::rollBack();
-            return redirect()->back()->with('error', 'Gagal menyimpan hasil: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menyimpan hasil perhitungan: ' . $e->getMessage());
         }
     }
+
     public function cetak(Request $request)
     {
         $kelas = $request->get('kelas');
 
-        $data = \App\Models\HasilSpk::with(['alternatif', 'walikelas'])
+        $data = HasilSpk::with(['alternatif', 'walikelas'])
             ->when($kelas, function ($query) use ($kelas) {
                 $query->where('kelas', $kelas);
             })

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class WaliKelas extends Model
 {
     protected $table = 'walikelas'; 
-    protected $fillable = ['nama_guru', 'nip'];
+    protected $fillable = ['nama_guru', 'nip', 'kelas'];
 
     public function hasil_spk()
     {
